@@ -4,6 +4,8 @@ package com.targinou.productapi.service;
 import com.targinou.productapi.dto.AuthenticationRequest;
 import com.targinou.productapi.dto.AuthenticationResponse;
 import com.targinou.productapi.dto.RefreshTokenRequest;
+import com.targinou.productapi.model.RefreshToken;
+import com.targinou.productapi.repository.RefreshTokenRepository;
 import com.targinou.productapi.repository.UserRepository;
 import com.targinou.productapi.security.jwt.JwtService;
 import com.targinou.productapi.utils.exceptions.BusinessException;
@@ -13,6 +15,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthenticationServiceImpl implements AuthenticationService {
@@ -25,16 +28,21 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final UserDetailsService userDetailsService;
 
+    private final RefreshTokenRepository refreshTokenRepository;
+
     public AuthenticationServiceImpl(UserRepository userRepository,
                                      JwtService jwtService,
                                      AuthenticationManager authenticationManager,
-                                     UserDetailsService userDetailsService) {
+                                     UserDetailsService userDetailsService,
+                                     RefreshTokenRepository refreshTokenRepository) {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
         this.userDetailsService = userDetailsService;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
+    @Transactional
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         try {
             authenticationManager
@@ -44,21 +52,32 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         var user = userRepository.findByLogin(request.login()).orElseThrow();
-        return jwtService.generateToken(user, user.getId());
+        refreshTokenRepository.updateIsUsedByUserId(user.getId());
+
+        var response = jwtService.generateToken(user, user.getId());
+
+        refreshTokenRepository.save(new RefreshToken(response.refreshToken(), user));
+
+        return response;
     }
 
+    @Transactional
     public AuthenticationResponse refreshAccessToken(RefreshTokenRequest request) {
         try {
             var username = jwtService.extractUsername(request.refreshToken());
             var userDetails = userDetailsService.loadUserByUsername(username);
             var user = userRepository.findByLogin(username).orElseThrow();
+            var refreshToken = refreshTokenRepository.findByToken(request.refreshToken());
 
-            if (!jwtService.isTokenValid(request.refreshToken(), userDetails)) {
+            if (!jwtService.isTokenValid(request.refreshToken(), userDetails) || refreshToken.isEmpty() || refreshToken.get().isIsUsed()) {
                 throw new BusinessException("Refresh token inválido ou expirado!", HttpStatus.FORBIDDEN);
             }
 
-            return jwtService.generateToken(userDetails, user.getId());
+            refreshTokenRepository.updateIsUsedByUserId(user.getId());
+            var response = jwtService.generateToken(userDetails, user.getId());
+            refreshTokenRepository.save(new RefreshToken(response.refreshToken(), user));
 
+            return response;
         } catch (Exception e) {
             throw new BusinessException("Erro ao gerar novo token de acesso: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }

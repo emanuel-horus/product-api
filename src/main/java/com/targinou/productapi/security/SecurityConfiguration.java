@@ -21,7 +21,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @EnableWebSecurity
 public class SecurityConfiguration {
 
-    private static final String[] WHITE_LIST_URL = {"/api/v1/auth/**"};
+    private static final String[] WHITE_LIST_URL = {"/v1/auth/**"};
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
 
@@ -34,11 +34,10 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(req ->
-                        req.requestMatchers(WHITE_LIST_URL)
-                                .permitAll()
-                                .anyRequest()
-                                .permitAll()
+                .authorizeHttpRequests(authz -> authz
+                        .requestMatchers(WHITE_LIST_URL).permitAll() // Permite acesso sem autenticação aos URLs na lista branca
+                        .requestMatchers("/v1/products/**").authenticated() // Requer autenticação para os endpoints do ProductController
+                        .anyRequest().authenticated() // Todas as outras requisições precisam de autenticação
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider)
@@ -47,3 +46,8 @@ public class SecurityConfiguration {
         return http.build();
     }
 }
+
+
+
+
+
