@@ -14,6 +14,6 @@ public record AuditLogDTO(
 
     @Override
     public AuditLogDTO toResponse() {
-        return new AuditLogDTO(this.id(), this.product(), this.user(), this.actionType(), this.description());
+        return new AuditLogDTO(this.id(), this.product().toResponse(), this.user().toResponse(), this.actionType(), this.description());
     }
 }

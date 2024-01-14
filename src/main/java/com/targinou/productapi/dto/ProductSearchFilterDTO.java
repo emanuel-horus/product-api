@@ -9,9 +9,9 @@ public class ProductSearchFilterDTO {
     private Pageable pageable;
     private Long id;
     private String name;
-    private Boolean active;
     private String sku;
     private Long categoryId;
+    private Long userId;
     private Double costPrice;
     private Double icms;
     private Double salePrice;
@@ -23,9 +23,9 @@ public class ProductSearchFilterDTO {
     public ProductSearchFilterDTO(Pageable pageable,
                                   Long id,
                                   String name,
-                                  Boolean active,
                                   String sku,
                                   Long categoryId,
+                                  Long userId,
                                   Double costPrice,
                                   Double icms,
                                   Double salePrice,
@@ -35,9 +35,9 @@ public class ProductSearchFilterDTO {
         this.pageable = pageable;
         this.id = id;
         this.name = name;
-        this.active = active;
         this.sku = sku;
         this.categoryId = categoryId;
+        this.userId = userId;
         this.costPrice = costPrice;
         this.icms = icms;
         this.salePrice = salePrice;
@@ -71,14 +71,6 @@ public class ProductSearchFilterDTO {
         this.name = name;
     }
 
-    public Boolean getActive() {
-        return active;
-    }
-
-    public void setActive(Boolean active) {
-        this.active = active;
-    }
-
     public String getSku() {
         return sku;
     }
@@ -93,6 +85,14 @@ public class ProductSearchFilterDTO {
 
     public void setCategoryId(Long categoryId) {
         this.categoryId = categoryId;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public Double getCostPrice() {

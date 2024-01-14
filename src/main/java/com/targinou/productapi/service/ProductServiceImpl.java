@@ -2,6 +2,7 @@ package com.targinou.productapi.service;
 
 import com.targinou.productapi.dto.ProductDTO;
 import com.targinou.productapi.dto.ProductSearchFilterDTO;
+import com.targinou.productapi.mappers.CategoryDTOMapper;
 import com.targinou.productapi.mappers.DtoMapper;
 import com.targinou.productapi.mappers.ProductDTOMapper;
 import com.targinou.productapi.model.AuditLog;
@@ -32,17 +33,20 @@ public class ProductServiceImpl implements ProductService {
     private final AuditLogService auditLogService;
     private final AuditLogRepository auditLogRepository;
     private final ProductDTOMapper mapper;
+    private final CategoryDTOMapper categoryDTOMapper;
 
     public ProductServiceImpl(ProductRepository productRepository,
                               AuthenticationService authenticationService,
                               AuditLogService auditLogService,
                               AuditLogRepository auditLogRepository,
-                              ProductDTOMapper mapper) {
+                              ProductDTOMapper mapper,
+                              CategoryDTOMapper categoryDTOMapper) {
         this.productRepository = productRepository;
         this.authenticationService = authenticationService;
         this.auditLogService = auditLogService;
         this.auditLogRepository = auditLogRepository;
         this.mapper = mapper;
+        this.categoryDTOMapper = categoryDTOMapper;
     }
 
     @Override
@@ -101,23 +105,58 @@ public class ProductServiceImpl implements ProductService {
         String description = auditLogService.buildUpdateDescription(existingEntity, getDtoMapper().toEntity(dto));
 
         Product updatedEntity = getDtoMapper().toEntity(dto);
-
         updatedEntity.setId(id);
-        validateBeforeUpdate(updatedEntity);
-        updatedEntity = getRepository().save(updatedEntity);
 
-        var auditLog = new AuditLog(updatedEntity, ActionType.CHANGE, currentUser, description);
+        if (dto.name() != null) {
+            existingEntity.setName(dto.name());
+        }
+        if (dto.sku() != null) {
+            existingEntity.setSku(dto.sku());
+        }
+        if (dto.category() != null) {
+            existingEntity.setCategory(categoryDTOMapper.toEntity(dto.category()));
+        }
+        if (dto.costPrice() != null) {
+            existingEntity.setCostPrice(dto.costPrice());
+        }
+        if (dto.icms() != null) {
+            existingEntity.setIcms(dto.icms());
+        }
+        if (dto.salePrice() != null) {
+            existingEntity.setSalePrice(dto.salePrice());
+        }
+        if (dto.productImage() != null) {
+            existingEntity.setProductImage(dto.productImage());
+        }
+        if (dto.stockQuantity() != null) {
+            existingEntity.setStockQuantity(dto.stockQuantity());
+        }
+
+        validateBeforeUpdate(existingEntity);
+        existingEntity = getRepository().save(existingEntity);
+
+        var auditLog = new AuditLog(existingEntity, ActionType.CHANGE, currentUser, description);
         auditLogRepository.save(auditLog);
 
-        return getDtoMapper().toDto(updatedEntity);
+        return getDtoMapper().toDto(existingEntity);
     }
 
     @Override
     public void deleteById(Long id) {
         Product entity = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Id not found: " + id));
+
+        if (!entity.isActive()) {
+            throw new BusinessException("Produto já excluído anteriormente.", HttpStatus.BAD_REQUEST);
+        }
+
         entity.setActive(false);
-        getRepository().save(entity);
+        getRepository().delete(entity);
+
+        var currentUser = authenticationService.getAuthenticatedUser();
+
+        var auditLog = new AuditLog(entity, ActionType.EXCLUSION, currentUser, "Produto excluído");
+        auditLogRepository.save(auditLog);
     }
 
 }

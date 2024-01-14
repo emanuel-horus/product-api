@@ -36,9 +36,9 @@ public class ProductController extends GenericController<Product, ProductDTO, Pr
             @ParameterObject Pageable pageable,
             @RequestParam(required = false) Long id,
             @RequestParam(required = false) String name,
-            @RequestParam(required = false) Boolean active,
             @RequestParam(required = false) String sku,
             @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long userId,
             @RequestParam(required = false) Double costPrice,
             @RequestParam(required = false) Double icms,
             @RequestParam(required = false) Double salePrice,
@@ -48,7 +48,7 @@ public class ProductController extends GenericController<Product, ProductDTO, Pr
 
 
         ProductSearchFilterDTO searchDTO = new ProductSearchFilterDTO(
-                pageable, id, name, active, sku, categoryId, costPrice, icms, salePrice, stockQuantity, orderBy, orderDirection
+                pageable, id, name, sku, categoryId, userId, costPrice, icms, salePrice, stockQuantity, orderBy, orderDirection
         );
 
         return ResponseEntity.ok(

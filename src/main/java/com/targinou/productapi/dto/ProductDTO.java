@@ -23,7 +23,7 @@ public record ProductDTO(
                 this.name(),
                 this.active(),
                 this.sku(),
-                this.category(),
+                this.category().toResponse(),
                 this.costPrice(),
                 this.icms(),
                 this.salePrice(),

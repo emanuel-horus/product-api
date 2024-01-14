@@ -15,7 +15,7 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
     private EntityManager entityManager;
 
     private static final String INITIAL_QUERY = "SELECT p FROM Product p JOIN p.category c ";
-    private static final String WHERE_CLAUSE = "WHERE 1=1 ";
+    private static final String WHERE_CLAUSE = "WHERE p.active = true ";
 
     @Override
     public Page<Product> searchByFilter(ProductSearchFilterDTO searchDTO) {
@@ -27,14 +27,14 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
         if (searchDTO.getName() != null && !searchDTO.getName().isEmpty()) {
             whereClause.append("AND LOWER(p.name) LIKE LOWER(:name) ");
         }
-        if (searchDTO.getActive() != null) {
-            whereClause.append("AND p.active = :active ");
-        }
         if (searchDTO.getSku() != null && !searchDTO.getSku().isEmpty()) {
             whereClause.append("AND p.sku LIKE :sku ");
         }
         if (searchDTO.getCategoryId() != null) {
             whereClause.append("AND c.id = :categoryId ");
+        }
+        if (searchDTO.getUserId() != null) {
+            whereClause.append("AND p.user.id = :userId ");
         }
         if (searchDTO.getCostPrice() != null) {
             whereClause.append("AND p.costPrice = :costPrice ");
@@ -85,14 +85,14 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
         if (searchDTO.getName() != null && !searchDTO.getName().isEmpty()) {
             query.setParameter("name", "%" + searchDTO.getName() + "%");
         }
-        if (searchDTO.getActive() != null) {
-            query.setParameter("active", searchDTO.getActive());
-        }
         if (searchDTO.getSku() != null && !searchDTO.getSku().isEmpty()) {
             query.setParameter("sku", "%" + searchDTO.getSku() + "%");
         }
         if (searchDTO.getCategoryId() != null) {
             query.setParameter("categoryId", searchDTO.getCategoryId());
+        }
+        if (searchDTO.getUserId() != null) {
+            query.setParameter("userId", searchDTO.getUserId());
         }
         if (searchDTO.getCostPrice() != null) {
             query.setParameter("costPrice", searchDTO.getCostPrice());

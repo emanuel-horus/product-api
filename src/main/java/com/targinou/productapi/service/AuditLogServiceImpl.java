@@ -67,6 +67,10 @@ public class AuditLogServiceImpl implements AuditLogService {
             appendUpdate(description, "Quantidade em Estoque", existingEntity.getStockQuantity(), updatedEntity.getStockQuantity());
         }
 
+        if (description.length() == 0) {
+            return "Nenhuma alteração foi feita";
+        }
+
         return description.toString();
     }
 
