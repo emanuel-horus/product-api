@@ -35,9 +35,9 @@ public class SecurityConfiguration {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers(WHITE_LIST_URL).permitAll() // Permite acesso sem autenticação aos URLs na lista branca
-                        .requestMatchers("/v1/products/**").authenticated() // Requer autenticação para os endpoints do ProductController
-                        .anyRequest().authenticated() // Todas as outras requisições precisam de autenticação
+                        .requestMatchers(WHITE_LIST_URL).permitAll()
+                        .requestMatchers("/v1/products/**").authenticated()
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider)

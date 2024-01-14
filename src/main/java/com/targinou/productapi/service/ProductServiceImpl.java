@@ -4,15 +4,23 @@ import com.targinou.productapi.dto.ProductDTO;
 import com.targinou.productapi.dto.ProductSearchFilterDTO;
 import com.targinou.productapi.mappers.DtoMapper;
 import com.targinou.productapi.mappers.ProductDTOMapper;
+import com.targinou.productapi.model.AuditLog;
 import com.targinou.productapi.model.Product;
+import com.targinou.productapi.model.enums.ActionType;
+import com.targinou.productapi.model.enums.Role;
+import com.targinou.productapi.repository.AuditLogRepository;
 import com.targinou.productapi.repository.GenericRepository;
 import com.targinou.productapi.repository.ProductRepository;
+import com.targinou.productapi.utils.exceptions.BusinessException;
+import com.targinou.productapi.utils.exceptions.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,10 +28,20 @@ import java.util.stream.Collectors;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+    private final AuthenticationService authenticationService;
+    private final AuditLogService auditLogService;
+    private final AuditLogRepository auditLogRepository;
     private final ProductDTOMapper mapper;
 
-    public ProductServiceImpl(ProductRepository productRepository, ProductDTOMapper mapper) {
+    public ProductServiceImpl(ProductRepository productRepository,
+                              AuthenticationService authenticationService,
+                              AuditLogService auditLogService,
+                              AuditLogRepository auditLogRepository,
+                              ProductDTOMapper mapper) {
         this.productRepository = productRepository;
+        this.authenticationService = authenticationService;
+        this.auditLogService = auditLogService;
+        this.auditLogRepository = auditLogRepository;
         this.mapper = mapper;
     }
 
@@ -49,6 +67,57 @@ public class ProductServiceImpl implements ProductService {
                 dtoList,
                 result.getPageable(),
                 result.getTotalElements());
+    }
+
+    @Override
+    public ProductDTO create(ProductDTO dto) {
+        Product entity = getDtoMapper().toEntity(dto);
+        var currentUser = authenticationService.getAuthenticatedUser();
+        entity.setUser(currentUser);
+        validateBeforeSave(entity);
+        Product savedEntity = getRepository().save(entity);
+
+        var auditLog = new AuditLog(savedEntity, ActionType.CREATION, currentUser, "Produto criado");
+        auditLogRepository.save(auditLog);
+
+        return getDtoMapper().toDto(savedEntity);
+    }
+
+
+    @Override
+    public ProductDTO update(Long id, ProductDTO dto) {
+        Product existingEntity = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Id not found: " + id));
+
+        var currentUser = authenticationService.getAuthenticatedUser();
+
+        if (currentUser.getRole() == Role.STOCKIST) {
+            if (!Objects.equals(dto.costPrice(), existingEntity.getCostPrice()) ||
+                    !Objects.equals(dto.icms(), existingEntity.getIcms())) {
+                throw new BusinessException("Estoquistas não estão autorizados a alterar o Valor de Custo ou ICMS.", HttpStatus.FORBIDDEN);
+            }
+        }
+
+        String description = auditLogService.buildUpdateDescription(existingEntity, getDtoMapper().toEntity(dto));
+
+        Product updatedEntity = getDtoMapper().toEntity(dto);
+
+        updatedEntity.setId(id);
+        validateBeforeUpdate(updatedEntity);
+        updatedEntity = getRepository().save(updatedEntity);
+
+        var auditLog = new AuditLog(updatedEntity, ActionType.CHANGE, currentUser, description);
+        auditLogRepository.save(auditLog);
+
+        return getDtoMapper().toDto(updatedEntity);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        Product entity = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Id not found: " + id));
+        entity.setActive(false);
+        getRepository().save(entity);
     }
 
 }

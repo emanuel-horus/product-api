@@ -5,6 +5,7 @@ import com.targinou.productapi.dto.AuthenticationRequest;
 import com.targinou.productapi.dto.AuthenticationResponse;
 import com.targinou.productapi.dto.RefreshTokenRequest;
 import com.targinou.productapi.model.RefreshToken;
+import com.targinou.productapi.model.User;
 import com.targinou.productapi.repository.RefreshTokenRepository;
 import com.targinou.productapi.repository.UserRepository;
 import com.targinou.productapi.security.jwt.JwtService;
@@ -13,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -81,6 +84,18 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         } catch (Exception e) {
             throw new BusinessException("Erro ao gerar novo token de acesso: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    public User getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new BusinessException("Usuário não autenticado!", HttpStatus.UNAUTHORIZED);
+        }
+
+        String username = authentication.getName();
+        return userRepository.findByLogin(username)
+                .orElseThrow(() -> new BusinessException("Usuário não encontrado!", HttpStatus.NOT_FOUND));
     }
 
 }

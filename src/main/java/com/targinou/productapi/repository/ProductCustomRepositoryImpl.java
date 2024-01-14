@@ -52,7 +52,7 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
         String orderByField = searchDTO.getOrderBy();
         String orderDirection = searchDTO.getOrderDirection().toUpperCase();
 
-        String orderBy = "ORDER BY " + orderByField + " " + orderDirection;
+        String orderBy = "ORDER BY p." + orderByField + " " + orderDirection;
 
         int pageNumber = searchDTO.getPageable().getPageNumber();
         int pageSize = searchDTO.getPageable().getPageSize();
