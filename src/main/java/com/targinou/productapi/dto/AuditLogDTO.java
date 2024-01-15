@@ -6,14 +6,14 @@ import com.targinou.productapi.model.enums.ActionType;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record AuditLogDTO(
         Long id,
-        ProductDTO product,
-        UserDTO user,
+        Long productId,
+        Long userId,
         ActionType actionType,
         String description
 ) implements EntityDTO {
 
     @Override
     public AuditLogDTO toResponse() {
-        return new AuditLogDTO(this.id(), this.product().toResponse(), this.user().toResponse(), this.actionType(), this.description());
+        return new AuditLogDTO(this.id(), this.productId(), this.userId(), this.actionType(), this.description());
     }
 }

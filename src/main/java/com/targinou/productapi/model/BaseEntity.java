@@ -23,7 +23,7 @@ public abstract class BaseEntity implements Serializable {
     protected ZonedDateTime updatedAt;
 
     @Column(name = "active")
-    protected boolean active = true;
+    protected Boolean active = true;
 
     public long getId() {
         return id;
@@ -49,11 +49,11 @@ public abstract class BaseEntity implements Serializable {
         this.updatedAt = updatedAt;
     }
 
-    public boolean isActive() {
+    public Boolean isActive() {
         return active;
     }
 
-    public void setActive(boolean active) {
+    public void setActive(Boolean active) {
         this.active = active;
     }
 

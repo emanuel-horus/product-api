@@ -13,7 +13,7 @@ public class Category extends BaseEntity {
     private String name;
 
     @Column(name = "active")
-    private boolean active;
+    private Boolean active;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
@@ -32,12 +32,12 @@ public class Category extends BaseEntity {
     }
 
     @Override
-    public boolean isActive() {
+    public Boolean isActive() {
         return active;
     }
 
     @Override
-    public void setActive(boolean active) {
+    public void setActive(Boolean active) {
         this.active = active;
     }
 
