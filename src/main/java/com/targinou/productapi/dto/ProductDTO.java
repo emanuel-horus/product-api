@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 public record ProductDTO(
         long id,
         String name,
-        boolean active,
+        Boolean active,
         String sku,
         CategoryDTO category,
         Double costPrice,

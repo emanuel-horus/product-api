@@ -1,36 +1,49 @@
 package com.targinou.productapi.mappers;
 
 import com.targinou.productapi.dto.ProductDTO;
-import com.targinou.productapi.dto.CategoryDTO;
 import com.targinou.productapi.model.Product;
+import com.targinou.productapi.model.enums.Role;
+import com.targinou.productapi.service.AuthenticationService;
+import com.targinou.productapi.service.FieldVisibilityService;
 import org.springframework.stereotype.Component;
+
+import java.util.Set;
 
 @Component
 public class ProductDTOMapper implements DtoMapper<Product, ProductDTO> {
 
     private final CategoryDTOMapper categoryDTOMapper;
+    private final FieldVisibilityService fieldVisibilityService;
+    private final AuthenticationService authenticationService;
 
-    public ProductDTOMapper(CategoryDTOMapper categoryDTOMapper) {
+    public ProductDTOMapper(CategoryDTOMapper categoryDTOMapper,
+                            FieldVisibilityService fieldVisibilityService,
+                            AuthenticationService authenticationService) {
         this.categoryDTOMapper = categoryDTOMapper;
+        this.fieldVisibilityService = fieldVisibilityService;
+        this.authenticationService = authenticationService;
     }
 
     @Override
     public ProductDTO toDto(Product entity) {
-        CategoryDTO categoryDTO = entity.getCategory() != null ? categoryDTOMapper.toDto(entity.getCategory()) : null;
+        var user = authenticationService.getAuthenticatedUser();
+        Set<String> visibleFields = fieldVisibilityService.getVisibleFieldsForRole(user.getRole());
 
-        return new ProductDTO(
-                entity.getId(),
-                entity.getName(),
-                entity.isActive(),
-                entity.getSku(),
-                categoryDTO,
-                entity.getCostPrice(),
-                entity.getIcms(),
-                entity.getSalePrice(),
-                entity.getProductImage(),
-                entity.getStockQuantity()
-        );
+        var id = entity.getId();
+        var name = entity.getName();
+        var active = entity.isActive();
+
+        var sku = visibleFields.contains("sku") || user.getRole().equals(Role.ADMIN) ? entity.getSku() : null;
+        var icms = visibleFields.contains("icms") || user.getRole().equals(Role.ADMIN) ? entity.getIcms() : null;
+        var costPrice = visibleFields.contains("costPrice") || user.getRole().equals(Role.ADMIN) ? entity.getCostPrice() : null;
+        var salePrice = visibleFields.contains("salePrice") || user.getRole().equals(Role.ADMIN) ? entity.getSalePrice() : null;
+        var productImage = visibleFields.contains("productImage") || user.getRole().equals(Role.ADMIN) ? entity.getProductImage() : null;
+        var stockQuantity = visibleFields.contains("stockQuantity") || user.getRole().equals(Role.ADMIN) ? entity.getStockQuantity() : null;
+        var category = visibleFields.contains("category") || user.getRole().equals(Role.ADMIN) ? entity.getCategory() != null ? categoryDTOMapper.toDto(entity.getCategory()) : null : null;
+
+        return new ProductDTO(id, name, active, sku, category, icms, costPrice, salePrice, productImage, stockQuantity);
     }
+
 
     @Override
     public Product toEntity(ProductDTO dto) {
@@ -48,4 +61,5 @@ public class ProductDTOMapper implements DtoMapper<Product, ProductDTO> {
 
         return product;
     }
+
 }
