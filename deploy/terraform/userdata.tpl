@@ -29,7 +29,7 @@
 #clone your project from git repository
     git clone https://github.com/emanuel-horus/product-api
     cd product-api
-    git checkout master
+    git checkout main
     git pull
     cd deploy/docker
 
