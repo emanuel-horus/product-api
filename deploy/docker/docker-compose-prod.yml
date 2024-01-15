@@ -12,7 +12,7 @@ services:
       POSTGRES_PASSWORD: postgres
       TZ: "America/Sao_Paulo"
     networks:
-      - pg-db-network
+      - docker-network
     restart: always
 
   product-api:
