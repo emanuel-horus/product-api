@@ -3,6 +3,7 @@ package com.targinou.productapi.controller;
 import com.targinou.productapi.dto.*;
 import com.targinou.productapi.model.Product;
 import com.targinou.productapi.service.ProductService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -19,6 +20,7 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/v1/products")
 @Validated
+@SecurityRequirement(name = "bearerAuth")
 public class ProductController extends GenericController<Product, ProductDTO, ProductService> {
 
     protected ProductController(ProductService service) {

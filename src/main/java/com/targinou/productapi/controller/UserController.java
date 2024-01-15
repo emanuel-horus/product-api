@@ -6,6 +6,7 @@ import com.targinou.productapi.dto.UserDTO;
 import com.targinou.productapi.dto.enums.RoleDTO;
 import com.targinou.productapi.model.User;
 import com.targinou.productapi.service.UserService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/v1/users")
 @Validated
+@SecurityRequirement(name = "bearerAuth")
 public class UserController extends GenericController<User, UserDTO, UserService> {
     protected UserController(UserService service) {
         super(service);
