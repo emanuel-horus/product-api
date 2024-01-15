@@ -1,7 +1,7 @@
 resource "aws_vpc" "product_vpc" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
-  enable_dns_support = true
+  enable_dns_support   = true
 
   tags = {
     "Name" = "productapi_vpc"
@@ -9,9 +9,9 @@ resource "aws_vpc" "product_vpc" {
 }
 
 resource "aws_subnet" "product_subnet" {
-  vpc_id     = aws_vpc.product_vpc.id
-  cidr_block = "10.0.1.0/24"
-  availability_zone = "us-east-1a"
+  vpc_id                  = aws_vpc.product_vpc.id
+  cidr_block              = "10.0.1.0/24"
+  availability_zone       = "us-east-1a"
   map_public_ip_on_launch = true
 
   tags = {
@@ -36,21 +36,21 @@ resource "aws_route_table" "product_rtb" {
 }
 
 resource "aws_route" "product_route" {
-  route_table_id = aws_route_table.product_rtb.id
+  route_table_id         = aws_route_table.product_rtb.id
   destination_cidr_block = "0.0.0.0/0"
-  gateway_id = aws_internet_gateway.product_igw.id
+  gateway_id             = aws_internet_gateway.product_igw.id
 }
 
 resource "aws_route_table_association" "product_rtb_ass" {
   route_table_id = aws_route_table.product_rtb.id
-  subnet_id = aws_subnet.product_subnet.id
+  subnet_id      = aws_subnet.product_subnet.id
 }
 
 resource "aws_instance" "product_ec2" {
-  instance_type = "t2.micro"
-  key_name = aws_key_pair.product_key.id
+  instance_type          = "t2.micro"
+  key_name               = aws_key_pair.product_key.id
   vpc_security_group_ids = [aws_security_group.product_sg.id]
-  subnet_id = aws_subnet.product_subnet.id
+  subnet_id              = aws_subnet.product_subnet.id
 
   ami = data.aws_ami.product_ami.id
 
