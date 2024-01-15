@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  product-api-db:
+    image: postgres:16.0-alpine
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_DB: product-api
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - product-api-db-data:/var/lib/postgresql/data
+
+volumes:
+  product-api-db-data:

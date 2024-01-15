@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Excluir diretório .terraform
+**/.terraform/*
+
+# Excluir arquivos específicos de provedor do Terraform
+**/terraform-provider-*.exe

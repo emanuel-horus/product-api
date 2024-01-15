@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  product-api-db:
+    container_name: product-api-db
+    image: postgres:16.0-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: product-api
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      TZ: "America/Sao_Paulo"
+    networks:
+      - pg-db-network
+    restart: always
+
+  product-api:
+    container_name: product-api
+    image: targinou/product-api:latest
+    environment:
+      SERVER_PORT: 3000
+      SPRING_PROFILES_ACTIVE: prod
+      TZ: "America/Sao_Paulo"
+    ports:
+      - "80:3000"
+    depends_on:
+      - product-api-db
+    networks:
+      - docker-network
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 700M
+        reservations:
+          memory: 700M
+
+networks:
+  docker-network:
+    driver: bridge
